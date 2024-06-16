@@ -6,11 +6,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColor
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateInt
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,9 +36,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.nstv.composablesheep.library.ComposableSheep
 import dev.nstv.composablesheep.library.model.Sheep
 import dev.nstv.composablesheep.library.util.SheepColor
@@ -170,6 +175,15 @@ fun ScreenItemCard(
     sharedAnimationScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
+
+    val textSize = sharedAnimationScope.transition.animateInt(label = "titlesize") {
+        if (it == EnterExitState.Visible) 16 else 26
+    }
+
+    val textColor = sharedAnimationScope.transition.animateColor(label = "textColor") {
+        if (it == EnterExitState.Visible) Color.Black else screenItem.sheep.fluffColor
+    }
+
     Card(
         modifier
             .clickable { onClick() }
@@ -180,7 +194,6 @@ fun ScreenItemCard(
                 .padding(8.dp)
         ) {
             with(sharedTransitionScope) {
-
                 ComposableSheep(
                     sheep = screenItem.sheep,
                     modifier = Modifier
@@ -193,8 +206,15 @@ fun ScreenItemCard(
                 )
                 Text(
                     text = screenItem.title,
-                    modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
+                    fontSize = textSize.value.sp,
+                    color = textColor.value,
+                    modifier = Modifier
+                        .sharedElement(
+                            rememberSharedContentState(key = screenItem.TitleComponentKey),
+                            animatedVisibilityScope = sharedAnimationScope,
+                        )
+                        .fillMaxWidth(),
                 )
             }
         }
