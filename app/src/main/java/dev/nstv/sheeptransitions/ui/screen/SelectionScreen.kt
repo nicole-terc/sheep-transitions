@@ -4,19 +4,18 @@ package dev.nstv.sheeptransitions.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateInt
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,7 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,9 +34,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,30 +44,6 @@ import dev.nstv.composablesheep.library.ComposableSheep
 import dev.nstv.composablesheep.library.model.Sheep
 import dev.nstv.composablesheep.library.util.SheepColor
 import dev.nstv.sheeptransitions.ui.screen.ScreenType.SheepDetail
-
-enum class SharedComponentType {
-    Sheep,
-    Title,
-}
-
-data class SharedComponentKey(
-    val type: SharedComponentType,
-    val id: String,
-)
-
-enum class ScreenType {
-    Selector,
-    SheepDetail,
-}
-
-data class ScreenItem(
-    val title: String,
-    val sheep: Sheep,
-    val screenType: ScreenType,
-) {
-    val SheepComponentKey = SharedComponentKey(SharedComponentType.Sheep, title)
-    val TitleComponentKey = SharedComponentKey(SharedComponentType.Title, title)
-}
 
 @Composable
 fun SelectionScreen(
@@ -100,6 +75,16 @@ fun SelectionScreen(
             ScreenItem(
                 title = "Orange Sheep",
                 sheep = Sheep(fluffColor = SheepColor.Orange),
+                screenType = SheepDetail,
+            ),
+            ScreenItem(
+                title = "Magenta Sheep",
+                sheep = Sheep(fluffColor = SheepColor.Magenta),
+                screenType = SheepDetail,
+            ),
+            ScreenItem(
+                title = "Black Sheep",
+                sheep = Sheep(fluffColor = SheepColor.Black, glassesColor = SheepColor.Fluff),
                 screenType = SheepDetail,
             ),
         )
@@ -175,48 +160,51 @@ fun ScreenItemCard(
     sharedAnimationScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
-
-    val textSize = sharedAnimationScope.transition.animateInt(label = "titlesize") {
-        if (it == EnterExitState.Visible) 16 else 26
-    }
-
-    val textColor = sharedAnimationScope.transition.animateColor(label = "textColor") {
-        if (it == EnterExitState.Visible) Color.Black else screenItem.sheep.fluffColor
-    }
-
-    Card(
-        modifier
-            .clickable { onClick() }
-    ) {
+    with(sharedTransitionScope) {
         Column(
-            Modifier
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier
                 .fillMaxSize()
+                .sharedBounds(
+                    rememberSharedContentState(key = screenItem.BoundsComponentKey),
+                    animatedVisibilityScope = sharedAnimationScope,
+                    enter = fadeIn(tween(animationDurationMillis)),
+                    exit = fadeOut(tween(animationDurationMillis)),
+                    resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds(),
+                )
+                .background(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                )
+                .clip(RoundedCornerShape(16.dp))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                )
                 .padding(8.dp)
+
         ) {
-            with(sharedTransitionScope) {
-                ComposableSheep(
-                    sheep = screenItem.sheep,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .sharedElement(
-                            rememberSharedContentState(key = screenItem.SheepComponentKey),
-                            animatedVisibilityScope = sharedAnimationScope,
-                        ),
-                )
-                Text(
-                    text = screenItem.title,
-                    textAlign = TextAlign.Center,
-                    fontSize = textSize.value.sp,
-                    color = textColor.value,
-                    modifier = Modifier
-                        .sharedElement(
-                            rememberSharedContentState(key = screenItem.TitleComponentKey),
-                            animatedVisibilityScope = sharedAnimationScope,
-                        )
-                        .fillMaxWidth(),
-                )
-            }
+            ComposableSheep(
+                sheep = screenItem.sheep,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .sharedElement(
+                        rememberSharedContentState(key = screenItem.SheepComponentKey),
+                        animatedVisibilityScope = sharedAnimationScope,
+                    ),
+            )
+            Text(
+                text = screenItem.title,
+                fontSize = 16.sp,
+                modifier = Modifier
+                    .sharedBounds(
+                        rememberSharedContentState(key = screenItem.TitleComponentKey),
+                        animatedVisibilityScope = sharedAnimationScope,
+                        boundsTransform = arcBoundsTransform,
+                    )
+            )
         }
     }
 }
