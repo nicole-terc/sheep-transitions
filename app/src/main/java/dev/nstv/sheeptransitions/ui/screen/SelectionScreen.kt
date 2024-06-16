@@ -1,7 +1,17 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package dev.nstv.sheeptransitions.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +41,16 @@ import dev.nstv.composablesheep.library.model.Sheep
 import dev.nstv.composablesheep.library.util.SheepColor
 import dev.nstv.sheeptransitions.ui.screen.ScreenType.SheepDetail
 
+enum class SharedComponentType {
+    Sheep,
+    Title,
+}
+
+data class SharedComponentKey(
+    val type: SharedComponentType,
+    val id: String,
+)
+
 enum class ScreenType {
     Selector,
     SheepDetail,
@@ -40,7 +60,10 @@ data class ScreenItem(
     val title: String,
     val sheep: Sheep,
     val screenType: ScreenType,
-)
+) {
+    val SheepComponentKey = SharedComponentKey(SharedComponentType.Sheep, title)
+    val TitleComponentKey = SharedComponentKey(SharedComponentType.Title, title)
+}
 
 @Composable
 fun SelectionScreen(
@@ -86,20 +109,27 @@ fun SelectionScreen(
             selectedScreen = selectionScreenItem
         }
 
-        AnimatedContent(
-            targetState = selectedScreen,
-            label = "Screen Selection Animation",
-        ) { screen ->
-            when (screen.screenType) {
-                ScreenType.Selector -> ViewSelectionScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    screens = screens,
-                    onItemClick = { selectedScreen = it },
-                )
+        SharedTransitionLayout {
 
-                SheepDetail -> SheepDetailScreen(
-                    sheep = screen.sheep,
-                )
+            AnimatedContent(
+                targetState = selectedScreen,
+                label = "Screen Selection Animation",
+            ) { screenItem ->
+                when (screenItem.screenType) {
+                    ScreenType.Selector -> ViewSelectionScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        screens = screens,
+                        onItemClick = { selectedScreen = it },
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        sharedAnimationScope = this@AnimatedContent,
+                    )
+
+                    SheepDetail -> SheepDetailScreen(
+                        screenItem = screenItem,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        sharedAnimationScope = this@AnimatedContent,
+                    )
+                }
             }
         }
     }
@@ -108,9 +138,11 @@ fun SelectionScreen(
 
 @Composable
 fun ViewSelectionScreen(
-    modifier: Modifier = Modifier,
     screens: List<ScreenItem>,
     onItemClick: (ScreenItem) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    sharedAnimationScope: AnimatedVisibilityScope,
+    modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
         modifier = modifier.padding(8.dp),
@@ -122,6 +154,8 @@ fun ViewSelectionScreen(
             ScreenItemCard(
                 screenItem = screenItem,
                 onClick = { onItemClick(screenItem) },
+                sharedTransitionScope = sharedTransitionScope,
+                sharedAnimationScope = sharedAnimationScope,
             )
         }
     }
@@ -132,6 +166,8 @@ fun ViewSelectionScreen(
 fun ScreenItemCard(
     screenItem: ScreenItem,
     onClick: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    sharedAnimationScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -143,27 +179,24 @@ fun ScreenItemCard(
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
-//            if (screenItem.brush != null) {
-//                ComposableSheep(
-//                    sheep = screenItem.sheep,
-//                    fluffBrush = screenItem.brush,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .aspectRatio(1f),
-//                )
-//            } else {
-            ComposableSheep(
-                sheep = screenItem.sheep,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-            )
-//            }
-            Text(
-                text = screenItem.title,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-            )
+            with(sharedTransitionScope) {
+
+                ComposableSheep(
+                    sheep = screenItem.sheep,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .sharedElement(
+                            rememberSharedContentState(key = screenItem.SheepComponentKey),
+                            animatedVisibilityScope = sharedAnimationScope,
+                        ),
+                )
+                Text(
+                    text = screenItem.title,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
