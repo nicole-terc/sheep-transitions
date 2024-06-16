@@ -5,25 +5,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.nstv.composablesheep.library.ComposableSheep
+import dev.nstv.composablesheep.library.model.Sheep
 
 @Composable
-fun HomeScreen(
+fun SheepDetailScreen(
+    sheep: Sheep,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         ComposableSheep(
             modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.Center)
+                .size(300.dp)
+                .align(Alignment.Center),
+            sheep = sheep,
         )
     }
-}
-
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen()
 }
