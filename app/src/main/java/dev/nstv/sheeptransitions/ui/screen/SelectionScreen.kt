@@ -25,8 +25,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,13 +68,13 @@ fun SelectionScreen(
                 screenType = SheepDetail,
             ),
             ScreenItem(
-                title = "Purple sheep",
-                sheep = Sheep(fluffColor = SheepColor.Purple),
+                title = "Blue Sheep",
+                sheep = Sheep(fluffColor = SheepColor.Blue),
                 screenType = SheepDetail,
             ),
             ScreenItem(
-                title = "Blue Sheep",
-                sheep = Sheep(fluffColor = SheepColor.Blue),
+                title = "Purple sheep",
+                sheep = Sheep(fluffColor = SheepColor.Purple),
                 screenType = SheepDetail,
             ),
             ScreenItem(
@@ -89,10 +92,31 @@ fun SelectionScreen(
                 sheep = Sheep(fluffColor = SheepColor.Black, glassesColor = SheepColor.Fluff),
                 screenType = SheepDetail,
             ),
+            ScreenItem(
+                title = "Cyan Sheep",
+                sheep = Sheep(fluffColor = Color(0xFF40EAF0)),
+                screenType = SheepDetail,
+            ),
+            ScreenItem(
+                title = "Yellow Sheep",
+                sheep = Sheep(fluffColor = Color(0xFFF0CA40)),
+                screenType = SheepDetail,
+            ),
+            ScreenItem(
+                title = "White Sheep",
+                sheep = Sheep(fluffColor = SheepColor.Fluff),
+                screenType = SheepDetail,
+            ),
+            ScreenItem(
+                title = "Red Sheep",
+                sheep = Sheep(fluffColor = Color(0xFFF04343)),
+                screenType = SheepDetail,
+            ),
         )
     }
 
     var selectedScreen by remember { mutableStateOf(selectionScreenItem) }
+    val lazyGridState = rememberLazyGridState()
 
 
     Surface(modifier = modifier) {
@@ -115,6 +139,7 @@ fun SelectionScreen(
                         sharedTransitionScope = this@SharedTransitionLayout,
                         sharedAnimationScope = this@AnimatedContent,
                         isSelectedItem = { it.title == selectedScreen.title },
+                        lazyGridState = lazyGridState,
                     )
 
                     SheepDetail -> SheepDetailScreen(
@@ -137,29 +162,27 @@ fun ViewSelectionScreen(
     sharedAnimationScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
     isSelectedItem: (ScreenItem) -> Boolean = { false },
+    lazyGridState: LazyGridState = rememberLazyGridState(),
 ) {
-    Column(modifier) {
-        LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(8.dp),
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(screens) { screenItem ->
-                ScreenItemCard(
-                    screenItem = screenItem,
-                    onClick = { onItemClick(screenItem) },
-                    sharedTransitionScope = sharedTransitionScope,
-                    sharedAnimationScope = sharedAnimationScope,
-                    isSelectedItem = isSelectedItem,
-                )
-            }
+    LazyVerticalGrid(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        state = lazyGridState,
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(screens) { screenItem ->
+            ScreenItemCard(
+                screenItem = screenItem,
+                onClick = { onItemClick(screenItem) },
+                sharedTransitionScope = sharedTransitionScope,
+                sharedAnimationScope = sharedAnimationScope,
+                isSelectedItem = isSelectedItem,
+            )
         }
     }
-
 }
 
 @Composable
@@ -177,7 +200,7 @@ fun ScreenItemCard(
             modifier = modifier
                 .fillMaxSize()
                 .sharedBounds(
-                    rememberSharedContentState(key = screenItem.BoundsComponentKey),
+                    rememberSharedContentState(key = screenItem.boundsComponentKey),
                     animatedVisibilityScope = sharedAnimationScope,
                     enter = fadeIn(tween(animationDurationMillis)),
                     exit = fadeOut(tween(animationDurationMillis)),
@@ -200,7 +223,7 @@ fun ScreenItemCard(
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .sharedElement(
-                        rememberSharedContentState(key = screenItem.SheepComponentKey),
+                        rememberSharedContentState(key = screenItem.sheepComponentKey),
                         animatedVisibilityScope = sharedAnimationScope,
                         boundsTransform = arcBoundsTransform,
                     ),
@@ -219,7 +242,6 @@ fun ScreenItemCard(
                                 animationSpec = tween(animationDurationMillis),
                                 initialOffsetY = { it }),
                             exit = fadeOut(snap())
-//                                    + slideOutVertically(tween(animationDurationMillis)),
                         )
                         .background(
                             color = screenItem.sheep.fluffColor.copy(alpha = 0.5f),
@@ -232,7 +254,7 @@ fun ScreenItemCard(
                         fontSize = 16.sp,
                         modifier = Modifier
                             .sharedBounds(
-                                rememberSharedContentState(key = screenItem.TitleComponentKey),
+                                rememberSharedContentState(key = screenItem.titleComponentKey),
                                 animatedVisibilityScope = sharedAnimationScope,
                                 boundsTransform = arcBoundsTransform,
                             )

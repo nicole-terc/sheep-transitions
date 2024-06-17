@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +34,7 @@ fun SheepDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val sheepDescription =
-        "This is a ${screenItem.title}, it goes 'bah!', but also 'baah bah' when it gets angry. \n It has a very fluffly fluff, really cool glasses and tiny cute little legs. Don't tell it that though, it's very proud."
+        "This is a composable sheep, it goes 'bah!', but also 'baah bah' when it gets angry. \nIt has a very fluffly fluff, really cool glasses and tiny cute little legs. Don't tell it that though, it's very proud."
 
     with(sharedTransitionScope) {
 
@@ -41,7 +42,7 @@ fun SheepDetailScreen(
             modifier = modifier
                 .fillMaxSize()
                 .sharedBounds(
-                    rememberSharedContentState(key = screenItem.BoundsComponentKey),
+                    rememberSharedContentState(key = screenItem.boundsComponentKey),
                     animatedVisibilityScope = sharedAnimationScope,
                     enter = fadeIn(tween(animationDurationMillis)) + slideInVertically(
                         animationSpec = tween(animationDurationMillis),
@@ -65,7 +66,7 @@ fun SheepDetailScreen(
                     .size(300.dp)
                     .weight(1f)
                     .sharedElement(
-                        rememberSharedContentState(key = screenItem.SheepComponentKey),
+                        rememberSharedContentState(key = screenItem.sheepComponentKey),
                         animatedVisibilityScope = sharedAnimationScope,
                         boundsTransform = arcBoundsTransform,
                     ),
@@ -77,7 +78,7 @@ fun SheepDetailScreen(
                 fontSize = 26.sp,
                 modifier = Modifier
                     .sharedBounds(
-                        rememberSharedContentState(key = screenItem.TitleComponentKey),
+                        rememberSharedContentState(key = screenItem.titleComponentKey),
                         animatedVisibilityScope = sharedAnimationScope,
                         boundsTransform = arcBoundsTransform
                     )
@@ -85,7 +86,7 @@ fun SheepDetailScreen(
 
             Text(
                 text = sheepDescription,
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .background(color = screenItem.sheep.fluffColor.copy(alpha = 0.5f))

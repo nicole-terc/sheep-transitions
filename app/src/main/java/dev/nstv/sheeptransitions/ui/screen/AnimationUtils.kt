@@ -12,7 +12,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.ui.geometry.Rect
 
 
-val animationDurationMillis = 1500
+const val animationDurationMillis = 700
 
 @OptIn(ExperimentalAnimationSpecApi::class, ExperimentalSharedTransitionApi::class)
 val arcBoundsTransform = BoundsTransform { initialBounds, targetBounds ->

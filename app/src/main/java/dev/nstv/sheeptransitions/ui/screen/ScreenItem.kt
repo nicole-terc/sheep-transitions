@@ -7,9 +7,9 @@ data class ScreenItem(
     val sheep: Sheep,
     val screenType: ScreenType,
 ) {
-    val SheepComponentKey = SharedComponentKey(SharedComponentType.Sheep, title)
-    val TitleComponentKey = SharedComponentKey(SharedComponentType.Title, title)
-    val BoundsComponentKey = SharedComponentKey(SharedComponentType.Bounds, title)
+    val sheepComponentKey = SharedComponentKey(SharedComponentType.Sheep, title)
+    val titleComponentKey = SharedComponentKey(SharedComponentType.Title, title)
+    val boundsComponentKey = SharedComponentKey(SharedComponentType.Bounds, title)
 }
 
 enum class ScreenType {
