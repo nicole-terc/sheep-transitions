@@ -181,7 +181,6 @@ fun ScreenItemCard(
                     animatedVisibilityScope = sharedAnimationScope,
                     enter = fadeIn(tween(animationDurationMillis)),
                     exit = fadeOut(tween(animationDurationMillis)),
-                    resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds(),
                 )
                 .background(
                     shape = RoundedCornerShape(16.dp),
