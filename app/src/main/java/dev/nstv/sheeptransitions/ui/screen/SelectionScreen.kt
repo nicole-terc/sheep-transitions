@@ -8,20 +8,22 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -112,6 +114,7 @@ fun SelectionScreen(
                         onItemClick = { selectedScreen = it },
                         sharedTransitionScope = this@SharedTransitionLayout,
                         sharedAnimationScope = this@AnimatedContent,
+                        isSelectedItem = { it.title == selectedScreen.title },
                     )
 
                     SheepDetail -> SheepDetailScreen(
@@ -133,20 +136,27 @@ fun ViewSelectionScreen(
     sharedTransitionScope: SharedTransitionScope,
     sharedAnimationScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
+    isSelectedItem: (ScreenItem) -> Boolean = { false },
 ) {
-    LazyVerticalGrid(
-        modifier = modifier.padding(8.dp),
-        columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(screens) { screenItem ->
-            ScreenItemCard(
-                screenItem = screenItem,
-                onClick = { onItemClick(screenItem) },
-                sharedTransitionScope = sharedTransitionScope,
-                sharedAnimationScope = sharedAnimationScope,
-            )
+    Column(modifier) {
+        LazyVerticalGrid(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(8.dp),
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(screens) { screenItem ->
+                ScreenItemCard(
+                    screenItem = screenItem,
+                    onClick = { onItemClick(screenItem) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    sharedAnimationScope = sharedAnimationScope,
+                    isSelectedItem = isSelectedItem,
+                )
+            }
         }
     }
 
@@ -159,6 +169,7 @@ fun ScreenItemCard(
     sharedTransitionScope: SharedTransitionScope,
     sharedAnimationScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier,
+    isSelectedItem: (ScreenItem) -> Boolean = { false },
 ) {
     with(sharedTransitionScope) {
         Column(
@@ -182,7 +193,6 @@ fun ScreenItemCard(
                     indication = null,
                     onClick = onClick,
                 )
-                .padding(8.dp)
 
         ) {
             ComposableSheep(
@@ -193,18 +203,43 @@ fun ScreenItemCard(
                     .sharedElement(
                         rememberSharedContentState(key = screenItem.SheepComponentKey),
                         animatedVisibilityScope = sharedAnimationScope,
+                        boundsTransform = arcBoundsTransform,
                     ),
             )
-            Text(
-                text = screenItem.title,
-                fontSize = 16.sp,
-                modifier = Modifier
-                    .sharedBounds(
-                        rememberSharedContentState(key = screenItem.TitleComponentKey),
-                        animatedVisibilityScope = sharedAnimationScope,
-                        boundsTransform = arcBoundsTransform,
+            with(sharedAnimationScope) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .renderInSharedTransitionScopeOverlay(
+                            renderInOverlay = { isSelectedItem(screenItem) },
+                        )
+                        .animateEnterExit(
+                            enter = fadeIn(tween(animationDurationMillis)) + slideInVertically(
+                                animationSpec = tween(animationDurationMillis),
+                                initialOffsetY = { it }),
+                            exit = fadeOut(snap())
+//                                    + slideOutVertically(tween(animationDurationMillis)),
+                        )
+                        .background(
+                            color = screenItem.sheep.fluffColor.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(bottomEnd = 16.dp, bottomStart = 16.dp)
+                        )
+                        .padding(8.dp),
+                ) {
+                    Text(
+                        text = screenItem.title,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .sharedBounds(
+                                rememberSharedContentState(key = screenItem.TitleComponentKey),
+                                animatedVisibilityScope = sharedAnimationScope,
+                                boundsTransform = arcBoundsTransform,
+                            )
                     )
-            )
+                }
+            }
         }
     }
 }

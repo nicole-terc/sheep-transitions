@@ -8,7 +8,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.keyframes
 
 
-val animationDurationMillis = 500
+val animationDurationMillis = 1500
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalAnimationSpecApi::class)
 val arcBoundsTransform = BoundsTransform { initialBounds, targetBounds ->
