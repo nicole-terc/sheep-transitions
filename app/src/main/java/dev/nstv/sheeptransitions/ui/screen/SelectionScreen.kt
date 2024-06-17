@@ -8,11 +8,11 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -241,7 +241,10 @@ fun ScreenItemCard(
                             enter = fadeIn(tween(animationDurationMillis)) + slideInVertically(
                                 animationSpec = tween(animationDurationMillis),
                                 initialOffsetY = { it }),
-                            exit = fadeOut(snap())
+                            exit = fadeOut(tween(animationDurationMillis / 2)) + slideOutVertically(
+                                animationSpec = tween(animationDurationMillis / 2),
+                                targetOffsetY = { it },
+                            ),
                         )
                         .background(
                             color = screenItem.sheep.fluffColor.copy(alpha = 0.5f),
