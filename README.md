@@ -1,4 +1,5 @@
 # Shared Element Transitions... using Sheep!
+**Slides here: [PDF](https://drive.google.com/file/d/1Usx9fUpUdlL9JA0YJ50qEqct6nasnBPW/view?usp=sharing)**
 
 _Read the official Shared Element Transitions docs [here](https://developer.android.com/develop/ui/compose/animation/shared-elements)_
 
